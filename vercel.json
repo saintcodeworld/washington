@@ -6,7 +6,7 @@
     }
   ],
   "functions": {
-    "api/scrape-new.js": {
+    "pages/api/scrape-new.js": {
       "maxDuration": 60
     }
   }
