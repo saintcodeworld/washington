@@ -4,10 +4,5 @@
       "path": "/api/scrape-new",
       "schedule": "0 0 * * *"
     }
-  ],
-  "functions": {
-    "api/scrape-new.js": {
-      "maxDuration": 60
-    }
-  }
+  ]
 }
