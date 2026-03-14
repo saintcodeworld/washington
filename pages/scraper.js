@@ -127,8 +127,8 @@ export default function Scraper() {
           <div className="admin-panel">
             <h2>🎛️ Scraping Controls</h2>
             <p className="admin-info">
-              Automated scraping runs every 15 minutes via Vercel Cron. 
-              Use this panel to trigger manual scraping.
+              Automated scraping runs once daily via Vercel Cron (Hobby plan limit). 
+              Use this panel to trigger manual scraping anytime.
             </p>
             
             <div className="admin-form">
@@ -193,9 +193,10 @@ export default function Scraper() {
             <div className="admin-tips">
               <h4>💡 Tips:</h4>
               <ul>
-                <li>Automatic scraping runs every 15 minutes (configured in vercel.json)</li>
+                <li>Automatic scraping runs once daily at midnight UTC (Vercel Hobby plan)</li>
                 <li>Each scraping session processes up to 10 latest articles</li>
                 <li>Duplicate articles are automatically skipped</li>
+                <li>Use manual trigger for immediate updates</li>
                 <li>Check Vercel dashboard for cron job logs</li>
               </ul>
             </div>
