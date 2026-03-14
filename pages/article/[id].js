@@ -35,7 +35,7 @@ export default function Article() {
   const handleReadOriginal = () => {
     setRedirecting(true);
     setTimeout(() => {
-      window.open(article.originalUrl, '_blank');
+      window.open(article.original_url, '_blank');
     }, 500);
   };
 
@@ -71,7 +71,7 @@ export default function Article() {
     <>
       <Head>
         <title>{article.title} - Washington Times</title>
-        <meta name="description" content={article.metaDescription || article.description} />
+        <meta name="description" content={article.meta_description || article.description} />
       </Head>
 
       <div className="article-page">
@@ -86,7 +86,7 @@ export default function Article() {
             
             <div className="article-meta">
               {article.author && <span className="author">By {article.author}</span>}
-              <span className="date">{formatDate(article.publishDate)}</span>
+              <span className="date">{formatDate(article.publish_date)}</span>
             </div>
 
             <div className="original-link-banner">
@@ -97,9 +97,9 @@ export default function Article() {
             </div>
           </div>
 
-          {article.ogImage && (
+          {article.og_image && (
             <div className="featured-image">
-              <img src={article.ogImage} alt={article.title} />
+              <img src={article.og_image} alt={article.title} />
             </div>
           )}
 
@@ -123,7 +123,7 @@ export default function Article() {
               <h3>Continue reading on Washington Times</h3>
               <p>This is a preview. Click below to read the full article on the original website.</p>
               <a 
-                href={article.originalUrl} 
+                href={article.original_url} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="cta-button"

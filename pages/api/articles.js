@@ -18,15 +18,15 @@ export default async function handler(req, res) {
       success: true,
       count: articles.length,
       articles: articles.map(article => ({
-        id: article._id,
+        id: article.id,
         title: article.title,
         description: article.description,
         category: article.category,
         author: article.author,
-        publishDate: article.publishDate,
-        originalUrl: article.originalUrl,
-        ogImage: article.ogImage,
-        scrapedAt: article.scrapedAt,
+        publishDate: article.publish_date,
+        originalUrl: article.original_url,
+        ogImage: article.og_image,
+        scrapedAt: article.scraped_at,
       }))
     });
 
