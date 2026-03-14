@@ -7,6 +7,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [scraping, setScraping] = useState(false);
+  const [scrapeResult, setScrapeResult] = useState(null);
+  const [cronSecret, setCronSecret] = useState('');
+  const [showAdmin, setShowAdmin] = useState(false);
 
   useEffect(() => {
     fetchArticles();
@@ -43,6 +47,41 @@ export default function Home() {
     }
   };
 
+  const triggerScraping = async () => {
+    if (!cronSecret) {
+      alert('Please enter your CRON_SECRET first');
+      return;
+    }
+
+    try {
+      setScraping(true);
+      setScrapeResult(null);
+      
+      const response = await fetch('/api/scrape-new', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${cronSecret}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setScrapeResult(data.results);
+        await fetchArticles();
+        await fetchStats();
+      } else {
+        alert('Scraping failed: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error triggering scraping:', error);
+      alert('Error triggering scraping: ' + error.message);
+    } finally {
+      setScraping(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -75,7 +114,93 @@ export default function Home() {
               )}
             </div>
           )}
+
+          <button 
+            className="admin-toggle"
+            onClick={() => setShowAdmin(!showAdmin)}
+          >
+            {showAdmin ? '🔒 Hide Admin' : '⚙️ Admin Controls'}
+          </button>
         </header>
+
+        {showAdmin && (
+          <div className="admin-panel">
+            <h2>🎛️ Scraping Controls</h2>
+            <p className="admin-info">
+              Automated scraping runs every 15 minutes via Vercel Cron. 
+              Use this panel to trigger manual scraping.
+            </p>
+            
+            <div className="admin-form">
+              <label htmlFor="cronSecret">CRON_SECRET:</label>
+              <input
+                id="cronSecret"
+                type="password"
+                value={cronSecret}
+                onChange={(e) => setCronSecret(e.target.value)}
+                placeholder="Enter your CRON_SECRET from .env"
+                className="secret-input"
+              />
+              
+              <button 
+                onClick={triggerScraping}
+                disabled={scraping || !cronSecret}
+                className="scrape-button"
+              >
+                {scraping ? '🔄 Scraping...' : '🚀 Trigger Scraping Now'}
+              </button>
+            </div>
+
+            {scrapeResult && (
+              <div className="scrape-results">
+                <h3>✅ Scraping Complete</h3>
+                <div className="result-stats">
+                  <div className="stat-item">
+                    <span className="stat-label">Total Found:</span>
+                    <span className="stat-value">{scrapeResult.total}</span>
+                  </div>
+                  <div className="stat-item success">
+                    <span className="stat-label">New Articles:</span>
+                    <span className="stat-value">{scrapeResult.new}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Already Exists:</span>
+                    <span className="stat-value">{scrapeResult.existing}</span>
+                  </div>
+                  <div className="stat-item error">
+                    <span className="stat-label">Failed:</span>
+                    <span className="stat-value">{scrapeResult.failed}</span>
+                  </div>
+                </div>
+                
+                {scrapeResult.articles && scrapeResult.articles.length > 0 && (
+                  <div className="new-articles-list">
+                    <h4>New Articles Added:</h4>
+                    <ul>
+                      {scrapeResult.articles.map((article, idx) => (
+                        <li key={idx}>
+                          <Link href={`/article/${article.id}`}>
+                            {article.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="admin-tips">
+              <h4>💡 Tips:</h4>
+              <ul>
+                <li>Automatic scraping runs every 15 minutes (configured in vercel.json)</li>
+                <li>Each scraping session processes up to 10 latest articles</li>
+                <li>Duplicate articles are automatically skipped</li>
+                <li>Check Vercel dashboard for cron job logs</li>
+              </ul>
+            </div>
+          </div>
+        )}
 
         <nav className="categories">
           <button 
@@ -326,6 +451,199 @@ export default function Home() {
           color: #666;
         }
 
+        .admin-toggle {
+          margin-top: 20px;
+          padding: 12px 24px;
+          background: rgba(255, 255, 255, 0.2);
+          border: 2px solid rgba(255, 255, 255, 0.5);
+          color: white;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 1rem;
+          font-weight: 600;
+          transition: all 0.3s ease;
+        }
+
+        .admin-toggle:hover {
+          background: rgba(255, 255, 255, 0.3);
+          border-color: white;
+        }
+
+        .admin-panel {
+          background: white;
+          border-radius: 12px;
+          padding: 30px;
+          margin-bottom: 30px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          border: 2px solid #e74c3c;
+        }
+
+        .admin-panel h2 {
+          margin: 0 0 10px 0;
+          color: #1a1a1a;
+          font-size: 1.8rem;
+        }
+
+        .admin-info {
+          color: #666;
+          margin-bottom: 20px;
+          line-height: 1.6;
+        }
+
+        .admin-form {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          margin-bottom: 30px;
+        }
+
+        .admin-form label {
+          font-weight: 600;
+          color: #1a1a1a;
+        }
+
+        .secret-input {
+          padding: 12px;
+          border: 2px solid #ddd;
+          border-radius: 8px;
+          font-size: 1rem;
+          transition: border-color 0.3s ease;
+        }
+
+        .secret-input:focus {
+          outline: none;
+          border-color: #e74c3c;
+        }
+
+        .scrape-button {
+          padding: 15px 30px;
+          background: #e74c3c;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 1.1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .scrape-button:hover:not(:disabled) {
+          background: #c0392b;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+        }
+
+        .scrape-button:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
+
+        .scrape-results {
+          background: #f8f9fa;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 20px;
+        }
+
+        .scrape-results h3 {
+          margin: 0 0 15px 0;
+          color: #27ae60;
+        }
+
+        .result-stats {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+
+        .stat-item {
+          background: white;
+          padding: 15px;
+          border-radius: 8px;
+          border-left: 4px solid #3498db;
+        }
+
+        .stat-item.success {
+          border-left-color: #27ae60;
+        }
+
+        .stat-item.error {
+          border-left-color: #e74c3c;
+        }
+
+        .stat-label {
+          display: block;
+          font-size: 0.85rem;
+          color: #666;
+          margin-bottom: 5px;
+        }
+
+        .stat-value {
+          display: block;
+          font-size: 1.8rem;
+          font-weight: 700;
+          color: #1a1a1a;
+        }
+
+        .new-articles-list {
+          background: white;
+          padding: 15px;
+          border-radius: 8px;
+        }
+
+        .new-articles-list h4 {
+          margin: 0 0 10px 0;
+          color: #1a1a1a;
+        }
+
+        .new-articles-list ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+
+        .new-articles-list li {
+          padding: 8px 0;
+          border-bottom: 1px solid #eee;
+        }
+
+        .new-articles-list li:last-child {
+          border-bottom: none;
+        }
+
+        .new-articles-list a {
+          color: #e74c3c;
+          text-decoration: none;
+          font-weight: 500;
+        }
+
+        .new-articles-list a:hover {
+          text-decoration: underline;
+        }
+
+        .admin-tips {
+          background: #fff3cd;
+          border-left: 4px solid #ffc107;
+          padding: 15px;
+          border-radius: 8px;
+        }
+
+        .admin-tips h4 {
+          margin: 0 0 10px 0;
+          color: #856404;
+        }
+
+        .admin-tips ul {
+          margin: 0;
+          padding-left: 20px;
+          color: #856404;
+        }
+
+        .admin-tips li {
+          margin-bottom: 5px;
+        }
+
         @media (max-width: 768px) {
           .articles-grid {
             grid-template-columns: 1fr;
@@ -338,6 +656,14 @@ export default function Home() {
           .stats {
             flex-direction: column;
             gap: 10px;
+          }
+
+          .result-stats {
+            grid-template-columns: 1fr;
+          }
+
+          .admin-panel {
+            padding: 20px;
           }
         }
       `}</style>
