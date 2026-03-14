@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/scrape-new",
-      "schedule": "0 0 * * *"
+      "schedule": "*/15 * * * *"
     }
   ],
   "functions": {

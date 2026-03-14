@@ -1,27 +1,29 @@
-# Washington Times Scraper
+# Washington Times News Scraper
 
-Automated news scraper for Washington Times that mirrors articles and redirects to original content.
+Automated news scraper for Washington Times that fetches articles with full content, images, and styling. Features a clean news homepage and powerful admin panel.
 
-## Features
+## 🎯 Features
 
+- ✅ **Clean Homepage** - Professional news display at `/`
+- ✅ **Admin Panel** - Full scraping controls at `/scraper`
 - ✅ **Auto-scraping** every 15 minutes via Vercel Cron Jobs
 - ✅ **RSS feed monitoring** for new articles
-- ✅ **Full article extraction** with CSS/HTML styling
-- ✅ **MongoDB storage** for articles and metadata
+- ✅ **Full article extraction** with images, CSS, and HTML
+- ✅ **Supabase storage** for articles and metadata
 - ✅ **Click-through attribution** to original Washington Times articles
 - ✅ **Category filtering** (Politics, World, Opinion, Sports, News)
 - ✅ **Responsive design** with modern UI
 - ✅ **No redeployment needed** - runs automatically
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Next.js** - React framework for Vercel
-- **MongoDB** - Database for storing articles
+- **Next.js 14** - React framework for Vercel
+- **Supabase** - PostgreSQL database for storing articles
 - **Cheerio** - HTML parsing and scraping
 - **Axios** - HTTP requests
-- **Vercel Cron Jobs** - Automated scraping
+- **Vercel Cron Jobs** - Automated scraping every 15 minutes
 
-## Setup Instructions
+## 🚀 Quick Start
 
 ### 1. Clone and Install
 
@@ -30,22 +32,24 @@ cd wt-scraper
 npm install
 ```
 
-### 2. Set Up MongoDB
+### 2. Set Up Supabase Database
 
-Create a free MongoDB Atlas account:
-1. Go to https://www.mongodb.com/cloud/atlas
-2. Create a new cluster
-3. Get your connection string
-4. Whitelist all IPs (0.0.0.0/0) for Vercel
+1. Create a free account at https://supabase.com
+2. Create a new project
+3. Go to SQL Editor and run the contents of `schema.sql`
+4. Get your credentials from Settings → API:
+   - Project URL
+   - anon/public key
 
 ### 3. Configure Environment Variables
 
 Create `.env.local` file:
 
 ```env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/washington-times?retryWrites=true&w=majority
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 CRON_SECRET=your-random-secret-key-here
-SITE_URL=https://your-site.vercel.app
+SITE_URL=http://localhost:3000
 ```
 
 ### 4. Test Locally
@@ -54,10 +58,14 @@ SITE_URL=https://your-site.vercel.app
 npm run dev
 ```
 
-Visit http://localhost:3000
+- Homepage: http://localhost:3000
+- Admin Panel: http://localhost:3000/scraper
 
-### 5. Deploy to Vercel
+### 5. Deploy to Production
 
+See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for complete deployment guide.
+
+Quick deploy:
 ```bash
 # Install Vercel CLI
 npm i -g vercel
@@ -65,10 +73,7 @@ npm i -g vercel
 # Deploy
 vercel
 
-# Add environment variables in Vercel dashboard:
-# - MONGODB_URI
-# - CRON_SECRET
-# - SITE_URL
+# Add environment variables in Vercel dashboard
 ```
 
 ## How It Works
@@ -133,28 +138,39 @@ Get scraper statistics
 GET /api/stats
 ```
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 wt-scraper/
 ├── lib/
 │   ├── scraper.js       # Washington Times scraper logic
-│   └── db.js            # MongoDB connection and queries
+│   └── db.js            # Supabase connection and queries
 ├── pages/
 │   ├── api/
 │   │   ├── scrape-new.js    # Cron endpoint for scraping
 │   │   ├── articles.js      # Get all articles
 │   │   ├── article/[id].js  # Get single article
 │   │   └── stats.js         # Get statistics
-│   ├── index.js         # Homepage with article grid
+│   ├── index.js         # 🏠 Homepage - Clean news display
+│   ├── scraper.js       # 🎛️ Admin Panel - Scraping controls
 │   ├── article/[id].js  # Article detail page
 │   └── _app.js          # Next.js app wrapper
 ├── styles/
 │   └── globals.css      # Global styles
+├── schema.sql           # Supabase database schema
 ├── vercel.json          # Vercel config with cron jobs
+├── DEPLOYMENT.md        # 📖 Complete deployment guide
 ├── package.json         # Dependencies
-└── README.md           # This file
+└── README.md            # This file
 ```
+
+## 🌐 Routes
+
+- **`/`** - Homepage with all articles (public-facing)
+- **`/scraper`** - Admin panel for managing scraping
+- **`/article/[id]`** - Individual article page
+- **`/api/articles`** - API endpoint for fetching articles
+- **`/api/scrape-new`** - Cron endpoint (protected by CRON_SECRET)
 
 ## Configuration
 
@@ -191,7 +207,7 @@ this.rssFeeds = [
 ];
 ```
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
 ### Cron not running
 
@@ -199,21 +215,19 @@ this.rssFeeds = [
 2. Verify `CRON_SECRET` is set in environment variables
 3. Check function logs in Vercel dashboard
 
-### MongoDB connection issues
+### Supabase connection issues
 
-1. Whitelist all IPs (0.0.0.0/0) in MongoDB Atlas
-2. Verify connection string is correct
-3. Check MongoDB Atlas cluster is running
+1. Verify `SUPABASE_URL` and `SUPABASE_ANON_KEY` are correct
+2. Check that `schema.sql` has been run in Supabase SQL Editor
+3. Ensure Row Level Security policies are set up
 
 ### No articles appearing
 
-1. Manually trigger scraping:
-   ```bash
-   curl -X POST https://your-site.vercel.app/api/scrape-new \
-     -H "Authorization: Bearer YOUR_CRON_SECRET"
-   ```
-2. Check Vercel function logs for errors
-3. Verify MongoDB connection
+1. Visit `/scraper` and manually trigger scraping
+2. Enter your `CRON_SECRET` and click "Trigger Scraping Now"
+3. Check Vercel function logs for errors
+4. Verify Supabase database has the articles table
+5. Check Supabase logs for any errors
 
 ## Legal Notice
 
