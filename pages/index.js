@@ -21,10 +21,13 @@ export default function Home() {
       const data = await response.json();
       
       if (data.success) {
-        setArticles(data.articles);
+        setArticles(data.articles || []);
+      } else {
+        setArticles([]);
       }
     } catch (error) {
       console.error('Error fetching articles:', error);
+      setArticles([]);
     } finally {
       setLoading(false);
     }
@@ -40,6 +43,7 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
+      setStats({ totalArticles: 0, categories: [] });
     }
   };
 
@@ -154,10 +158,15 @@ export default function Home() {
               </div>
             ) : (
               <div className="empty-state">
-                <h2>No Articles Available</h2>
-                <p>Articles are automatically scraped every 15 minutes. Check back soon!</p>
+                <h2>Welcome to Washington Times News Scraper</h2>
+                <p>No articles have been scraped yet. To get started:</p>
+                <ol className="setup-steps">
+                  <li>Make sure you've set up Supabase and added environment variables in Vercel</li>
+                  <li>Go to the Admin Panel and trigger your first scrape</li>
+                  <li>Articles will appear here automatically</li>
+                </ol>
                 <Link href="/scraper" className="scraper-link">
-                  Go to Admin Panel
+                  Go to Admin Panel to Start Scraping
                 </Link>
               </div>
             )}
@@ -467,7 +476,23 @@ export default function Home() {
 
         .empty-state p {
           color: #666;
-          margin-bottom: 25px;
+          margin-bottom: 20px;
+        }
+
+        .setup-steps {
+          text-align: left;
+          max-width: 500px;
+          margin: 0 auto 30px;
+          padding: 20px 30px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          border-left: 4px solid #a9091f;
+        }
+
+        .setup-steps li {
+          margin-bottom: 12px;
+          color: #333;
+          line-height: 1.6;
         }
 
         .scraper-link {
